@@ -60,7 +60,11 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: SafeArea(
-        child: ListView.builder(
+        child: characters.isEmpty
+        ? const Center(
+          child: CircularProgressIndicator(),
+        )
+        : ListView.builder(
           itemCount: characters.length,
           itemBuilder: (context, index) {
             return Card(
