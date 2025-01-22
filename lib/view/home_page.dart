@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:pokedex/api/pokemon_api.dart';
-import 'package:pokedex/models/pokemon_model.dart';
+import 'package:pokedex/controller/pokemon_controller.dart';
 import 'package:pokedex/view/pokemon_card.dart';
+import 'package:provider/provider.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -11,35 +11,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  PokemonApi api = PokemonApi();
-
-  List<Pokemon> characters = [];
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadPokemons();
-  }
-
-  void _loadPokemons() async {
-    List<Pokemon> fetchedPokemons = await api.getInfo();
-
-    setState(() {
-      characters = fetchedPokemons;
-    });
-  }
+  late PokemonController controller;
 
   void _navigateToPokemonCard(int index) {
     Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PokemonCard(pokemon: characters[index])
-      )
-    );
+        context,
+        MaterialPageRoute(
+            builder: (context) => PokemonCard(pokemon: controller.characters[index])));
   }
 
   @override
   Widget build(BuildContext context) {
+    controller = context.read<PokemonController>()..getInfo();
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
@@ -59,12 +43,17 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ],
       ),
-      body: SafeArea(
-        child: characters.isEmpty
-        ? const Center(
-          child: CircularProgressIndicator(),
-        )
-        : ListView.builder(
+      body:
+          SafeArea(child: Consumer<PokemonController>(builder: (_, c, widget) {
+        final characters = c.characters;
+
+        if (characters.isEmpty) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        return ListView.builder(
           itemCount: characters.length,
           itemBuilder: (context, index) {
             return Card(
@@ -81,8 +70,8 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             );
           },
-        ),
-      ),
+        );
+      })),
     );
   }
 }
